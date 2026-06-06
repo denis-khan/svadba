@@ -218,9 +218,48 @@ window.tildastatcookie='no';setTimeout(function(){(function(d,w,k,o,g) {var n=d.
 </script><script id="guest-form-formspree">
 (function() {
   var FORMSPREE_ENDPOINT = 'https://formspree.io/f/mjgdgqrq';
+  var FORM_ROOT_SELECTOR = '#rec2013873201';
+  var FORM_ID = 'wedding-rsvp-form';
+  var isSubmitting = false;
 
   function getAll(formData, name) {
     return formData.getAll(name).filter(Boolean);
+  }
+
+  function cssEscape(value) {
+    if (window.CSS && window.CSS.escape) return window.CSS.escape(value);
+    return value.replace(/"/g, '\\"');
+  }
+
+  function getField(form, name) {
+    return form.querySelector('[name="' + cssEscape(name) + '"]');
+  }
+
+  function getValue(form, name) {
+    var field = getField(form, name);
+    return field ? (field.value || '').trim() : '';
+  }
+
+  function getCheckedValue(form, name) {
+    var checked = form.querySelector('[name="' + cssEscape(name) + '"]:checked');
+    return checked ? (checked.value || '').trim() : getValue(form, name);
+  }
+
+  function getDrinks(form, formData) {
+    var values = getAll(formData, 'Какие напитки вы предпочитаете:').map(function(value) {
+      return value.trim();
+    }).filter(Boolean);
+
+    if (values.length) return values.join(', ');
+
+    var checked = Array.prototype.map.call(
+      form.querySelectorAll('input[type="checkbox"]:checked'),
+      function(input) {
+        return (input.value || (input.closest('label') || {}).textContent || '').trim();
+      }
+    ).filter(Boolean);
+
+    return checked.join(', ');
   }
 
   function setFormStatus(form, message, isError) {
@@ -234,12 +273,29 @@ window.tildastatcookie='no';setTimeout(function(){(function(d,w,k,o,g) {var n=d.
     status.classList.toggle('formspree-status_error', !!isError);
   }
 
-  document.addEventListener('submit', function(event) {
-    var form = event.target;
-    if (!form.closest || !form.closest('#rec2013873201')) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
+  function getFormFromEvent(event) {
+    var target = event.target;
+    if (!target || !target.closest || !target.closest(FORM_ROOT_SELECTOR)) return null;
+    return target.closest('form') || document.querySelector(FORM_ROOT_SELECTOR + ' form');
+  }
 
+  function configureForm(form) {
+    if (!form || form.dataset.formspreeConfigured === 'true') return;
+    form.id = FORM_ID;
+    form.action = FORMSPREE_ENDPOINT;
+    form.method = 'POST';
+    form.setAttribute('accept-charset', 'UTF-8');
+    form.dataset.formspreeConfigured = 'true';
+  }
+
+  function submitForm(form, event) {
+    if (!form || isSubmitting) return;
+    if (event) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+
+    configureForm(form);
     if (form.checkValidity && !form.checkValidity()) {
       form.reportValidity();
       return;
@@ -249,16 +305,17 @@ window.tildastatcookie='no';setTimeout(function(){(function(d,w,k,o,g) {var n=d.
     if (submitButton) submitButton.disabled = true;
 
     setFormStatus(form, 'Отправляем ответ...', false);
-    var formData = new FormData(event.target);
+    var formData = new FormData(form);
     var payload = {
       _subject: 'Анкета гостей Денис и Яна',
-      'Ваше Имя и Фамилия': formData.get('Ваше Имя и Фамилия ') || '',
-      'Планируете ли вы присутствовать на свадьбе?': formData.get('Планируете ли вы присутствовать на свадьбе?') || '',
-      'Какие напитки вы предпочитаете': getAll(formData, 'Какие напитки вы предпочитаете:').join(', '),
-      'Что именно другое': formData.get('Что именно другое') || '',
-      'Любимая песня': formData.get('Напишите свою любимую песню') || ''
+      'Ваше Имя и Фамилия': getValue(form, 'Ваше Имя и Фамилия '),
+      'Планируете ли вы присутствовать на свадьбе?': getCheckedValue(form, 'Планируете ли вы присутствовать на свадьбе?'),
+      'Какие напитки вы предпочитаете': getDrinks(form, formData),
+      'Что именно другое': getValue(form, 'Что именно другое'),
+      'Любимая песня': getValue(form, 'Напишите свою любимую песню')
     };
 
+    isSubmitting = true;
     fetch(FORMSPREE_ENDPOINT, {
       method: 'POST',
       headers: {
@@ -280,9 +337,49 @@ window.tildastatcookie='no';setTimeout(function(){(function(d,w,k,o,g) {var n=d.
         setFormStatus(form, 'Не получилось отправить ответ. Попробуйте еще раз.', true);
       })
       .finally(function() {
+        isSubmitting = false;
         if (submitButton) submitButton.disabled = false;
       });
+  }
+
+  function setupFormspree() {
+    var form = document.querySelector(FORM_ROOT_SELECTOR + ' form');
+    if (form) configureForm(form);
+    return !!form;
+  }
+
+  document.addEventListener('submit', function(event) {
+    var form = getFormFromEvent(event);
+    if (!form) return;
+    submitForm(form, event);
   }, true);
+
+  document.addEventListener('click', function(event) {
+    var target = event.target;
+    if (!target || !target.closest) return;
+    if (!target.closest(FORM_ROOT_SELECTOR + ' .t-submit')) return;
+    var form = getFormFromEvent(event);
+    submitForm(form, event);
+  }, true);
+
+  function boot() {
+    setupFormspree();
+    var tries = 0;
+    var timer = setInterval(function() {
+      tries += 1;
+      if (setupFormspree() || tries > 40) clearInterval(timer);
+    }, 250);
+    var root = document.querySelector(FORM_ROOT_SELECTOR);
+    if (root && window.MutationObserver) {
+      new MutationObserver(setupFormspree).observe(root, { childList: true, subtree: true });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 })();
 </script><style id="guest-form-formspree-styles">
 #rec2013873201 .formspree-status{margin-top:18px;color:#f8f0e5;font-family:var(--t-headline-font,Arial);font-size:16px;line-height:1.3;font-weight:800;text-align:center;}
