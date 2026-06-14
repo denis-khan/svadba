@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#4b2f26"/>
+  <g fill="#f8f0e5" opacity=".22">
+    <path transform="translate(142 118) rotate(-18) scale(1.15)" d="M2 2C9 1 14 6 19 15C24 6 29 1 36 6C43 17 28 26 19 35C10 27-4 16 2 2Z"/>
+    <path transform="translate(1000 128) rotate(16) scale(1.15)" d="M2 2C9 1 14 6 19 15C24 6 29 1 36 6C43 17 28 26 19 35C10 27-4 16 2 2Z"/>
+    <path transform="translate(198 500) rotate(12) scale(1.15)" d="M2 2C9 1 14 6 19 15C24 6 29 1 36 6C43 17 28 26 19 35C10 27-4 16 2 2Z"/>
+    <path transform="translate(950 496) rotate(-12) scale(1.15)" d="M2 2C9 1 14 6 19 15C24 6 29 1 36 6C43 17 28 26 19 35C10 27-4 16 2 2Z"/>
+  </g>
+  <text x="600" y="105" fill="#f8f0e5" font-family="Arial, sans-serif" font-size="30" font-weight="800" text-anchor="middle">ИСТОРИЯ ЛЮБВИ</text>
+  <text x="600" y="300" fill="#f8f0e5" font-family="Arial Black, Arial, sans-serif" font-size="150" font-weight="900" text-anchor="middle">ДЕНИСА</text>
+  <text x="600" y="430" fill="#f8f0e5" font-family="Arial Black, Arial, sans-serif" font-size="142" font-weight="900" text-anchor="middle">&amp; ЯНЫ</text>
+  <text x="600" y="520" fill="#f8f0e5" font-family="Arial, sans-serif" font-size="32" font-weight="700" text-anchor="middle">Приглашение на свадьбу</text>
+  <text x="600" y="568" fill="#f8f0e5" font-family="Arial, sans-serif" font-size="32" font-weight="700" text-anchor="middle">1 августа 2026</text>
+</svg>
